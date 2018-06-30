@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace RSACryptLibrary.src
+namespace RSACryptLibrary
 {
     class Options
     {
-        public const char EncryptionSplitChar = ' ';
-        public const string EncryptionDelimiter = "987";
+        public const char EncryptionBlockDelimiter = ' ';
+        public const string EncryptionBytesDelimiter = "987";
 
         /// <summary>
         /// Computes hash using SHA256 hash algorythm

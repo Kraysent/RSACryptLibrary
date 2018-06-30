@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace RSACryptLibrary.src
+namespace RSACryptLibrary
 {
     public class Key
     {
@@ -56,7 +56,7 @@ namespace RSACryptLibrary.src
 
             for (int i = 0; i < textByteArray.Length; i++)
             {
-                block[j] += textByteArray[i] + Options.EncryptionDelimiter;
+                block[j] += textByteArray[i] + Options.EncryptionBytesDelimiter;
 
                 if (block[j].Length > Modulus.ToString().Length - 10)
                 {
@@ -69,7 +69,7 @@ namespace RSACryptLibrary.src
             {
                 currentBIBlock = BigInteger.Parse(block[i]);
                 encryptedMessage = BigInteger.ModPow(currentBIBlock, Exponent, Modulus);
-                outputText += encryptedMessage + Options.EncryptionSplitChar;
+                outputText += encryptedMessage + Options.EncryptionBlockDelimiter;
             }
 
             return outputText;
@@ -82,10 +82,9 @@ namespace RSACryptLibrary.src
         /// <returns></returns>
         public string Decrypt(string encryptedText)
         {
-            string[] encryptedBlocks = encryptedText.Split(Options.EncryptionSplitChar);
+            string[] encryptedBlocks = encryptedText.Split(Options.EncryptionBlockDelimiter);
             string decryptedText = "", outputText = "";
             List<byte> encryptedByteList = new List<byte>();
-            byte[] encryptedBytes;
             BigInteger encryptedBlock;
 
             for (int i = 0; i < encryptedBlocks.Length; i++)
@@ -93,17 +92,52 @@ namespace RSACryptLibrary.src
                 encryptedBlock = BigInteger.Parse(encryptedBlocks[i]);
                 decryptedText = BigInteger.ModPow(encryptedBlock, Exponent, Modulus).ToString();
 
-                while (decryptedText.IndexOf(Options.EncryptionDelimiter) != -1)
+                while (decryptedText.IndexOf(Options.EncryptionBytesDelimiter) != -1)
                 {
-                    encryptedByteList.Add(Convert.ToByte(Text_Operations.Cut_Text(decryptedText, 0, decryptedText.IndexOf(Options.EncryptionDelimiter))));
-                    decryptedText = decryptedText.Substring(decryptedText.IndexOf(Options.EncryptionDelimiter) + 3);
+                    encryptedByteList.Add(Convert.ToByte(decryptedText.Substring(0, decryptedText.IndexOf(Options.EncryptionBytesDelimiter))));
+                    decryptedText = decryptedText.Substring(decryptedText.IndexOf(Options.EncryptionBytesDelimiter) + 3);
                 }
             }
 
-            encryptedBytes = encryptedByteList.ToArray();
-            outputText = Options.ToText(encryptedBytes);
+            outputText = Options.ToText(encryptedByteList.ToArray());
 
             return outputText;
+        }
+
+        /// <summary>
+        /// Signs current text with digital signature using private key
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        public string Sign(string text)
+        {
+            byte[] textHash = Options.ComputeHash(text);
+            BigInteger hashBI = new BigInteger(textHash);
+            string signature = BigInteger.ModPow(hashBI, Exponent, Modulus).ToString();
+
+            return signature;
+        }
+
+        /// <summary>
+        /// Checks the signature if the text using public key
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="signature"></param>
+        /// <returns></returns>
+        public bool CheckSignature(string text, string signature)
+        {
+            BigInteger signatureBI = BigInteger.Parse(signature);
+            BigInteger decryptedSignature = BigInteger.ModPow(signatureBI, Exponent, Modulus);
+            BigInteger hashBI = new BigInteger(Options.ComputeHash(text));
+
+            if (decryptedSignature == hashBI)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         //-----Static methods-----//
