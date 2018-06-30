@@ -1,13 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 
 namespace RSACryptLibrary
 {
     class Hashes
     {
+        /// <summary>
+        /// Computes hash using SHA256 hash algorythm
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="hash"></param>
+        /// <returns></returns>
         public static byte[] ComputeHash(string text)
         {
             SHA256 hash = new SHA256Managed();

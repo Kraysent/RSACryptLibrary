@@ -53,7 +53,7 @@ namespace RSACryptLibrary
 
             if (Type != KeyType.Public)
             {
-                throw new KeyTypeIsWrongException();
+                throw new KeyTypeIsWrongException("Key type is wrong!");
             }
 
             for (int i = 0; i < textByteArray.Length; i++)
@@ -89,6 +89,11 @@ namespace RSACryptLibrary
             List<byte> encryptedByteList = new List<byte>();
             BigInteger encryptedBlock;
 
+            if (Type != KeyType.Private)
+            {
+                throw new KeyTypeIsWrongException("Key type is wrong!");
+            }
+
             for (int i = 0; i < encryptedBlocks.Length; i++)
             {
                 encryptedBlock = BigInteger.Parse(encryptedBlocks[i]);
@@ -117,6 +122,11 @@ namespace RSACryptLibrary
             BigInteger hashBI = new BigInteger(textHash);
             string signature = BigInteger.ModPow(hashBI, Exponent, Modulus).ToString();
 
+            if (Type != KeyType.Private)
+            {
+                throw new KeyTypeIsWrongException("Key type is wrong!");
+            }
+
             return signature;
         }
 
@@ -131,6 +141,11 @@ namespace RSACryptLibrary
             BigInteger signatureBI = BigInteger.Parse(signature);
             BigInteger decryptedSignature = BigInteger.ModPow(signatureBI, Exponent, Modulus);
             BigInteger hashBI = new BigInteger(Hashes.ComputeHash(text));
+
+            if (Type != KeyType.Public)
+            {
+                throw new KeyTypeIsWrongException("Key type is wrong!");
+            }
 
             if (decryptedSignature == hashBI)
             {
