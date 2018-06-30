@@ -1,18 +1,15 @@
 ﻿using System;
-using System.Numerics;
-using System.Windows.Forms;
-using System.Drawing;
-using System.Threading;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Numerics;
+using System.Threading;
+using System.Windows.Forms;
 
 namespace RSACryptLibrary
 {
     public class Key
     {
         //-----Variables-----//
-
+        
         public BigInteger Exponent;
         public BigInteger Modulus;
         public KeyType Type;
@@ -47,12 +44,17 @@ namespace RSACryptLibrary
         /// <returns></returns>
         public string Encrypt(string text)
         {
-            byte[] textByteArray = Options.ToByteArray(text);
+            byte[] textByteArray = Hashes.ToByteArray(text);
             string[] block = new string[100]; // biggest message
             int j = 0;
             BigInteger currentBIBlock = 0, encryptedMessage;
             string outputText = "";
             Random rnd = new Random();
+
+            if (Type != KeyType.Public)
+            {
+                throw new KeyTypeIsWrongException();
+            }
 
             for (int i = 0; i < textByteArray.Length; i++)
             {
@@ -99,7 +101,7 @@ namespace RSACryptLibrary
                 }
             }
 
-            outputText = Options.ToText(encryptedByteList.ToArray());
+            outputText = Hashes.ToText(encryptedByteList.ToArray());
 
             return outputText;
         }
@@ -111,7 +113,7 @@ namespace RSACryptLibrary
         /// <returns></returns>
         public string Sign(string text)
         {
-            byte[] textHash = Options.ComputeHash(text);
+            byte[] textHash = Hashes.ComputeHash(text);
             BigInteger hashBI = new BigInteger(textHash);
             string signature = BigInteger.ModPow(hashBI, Exponent, Modulus).ToString();
 
@@ -128,7 +130,7 @@ namespace RSACryptLibrary
         {
             BigInteger signatureBI = BigInteger.Parse(signature);
             BigInteger decryptedSignature = BigInteger.ModPow(signatureBI, Exponent, Modulus);
-            BigInteger hashBI = new BigInteger(Options.ComputeHash(text));
+            BigInteger hashBI = new BigInteger(Hashes.ComputeHash(text));
 
             if (decryptedSignature == hashBI)
             {
@@ -148,7 +150,7 @@ namespace RSACryptLibrary
         /// <returns></returns>
         public static Key[] GeneratePair(string username, string password, int keysLength)
         {
-            byte[] passwordHash = Options.ComputeHash(password);
+            byte[] passwordHash = Hashes.ComputeHash(password);
             BigInteger p, q, publicExp = 0, privateExp = 0, rem = 0, eylerFunction, modulus = 0;
             Key[] outputKeyArray = new Key[2];
 
@@ -200,7 +202,7 @@ namespace RSACryptLibrary
             int currentTimeMs = DateTime.Now.Millisecond;
             int cursorX = Cursor.Position.X, cursorY = Cursor.Position.Y, i, currentRnd, currentNumRnd;
             Random rnd = new Random();
-            byte[] cXHash = Options.ComputeHash(cursorX.ToString()), cYHash = Options.ComputeHash(cursorY.ToString()), timeHash = Options.ComputeHash(currentTimeMs.ToString());
+            byte[] cXHash = Hashes.ComputeHash(cursorX.ToString()), cYHash = Hashes.ComputeHash(cursorY.ToString()), timeHash = Hashes.ComputeHash(currentTimeMs.ToString());
             string resNumStr = "";
             BigInteger outputNumber;
 
@@ -397,4 +399,6 @@ namespace RSACryptLibrary
             y = y2;
         }
     }
+
+    public enum KeyType { Public, Private };
 }
