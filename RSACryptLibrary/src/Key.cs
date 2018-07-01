@@ -13,8 +13,6 @@ namespace RSACryptLibrary
         public BigInteger Exponent;
         public BigInteger Modulus;
         public KeyType Type;
-        public string Username;
-        public byte[] PasswordHash;
 
         //-----Initialisation-----//
 
@@ -26,13 +24,11 @@ namespace RSACryptLibrary
         /// <param name="keyType">Can only be "pub" or "priv"</param>
         /// <param name="username"></param>
         /// <param name="passwordHash"></param>
-        public Key(BigInteger exponent, BigInteger modulus, KeyType type, string username, byte[] passwordHash)
+        public Key(BigInteger exponent, BigInteger modulus, KeyType type)
         {
             Exponent = exponent;
             Modulus = modulus;
             Type = type;
-            Username = username;
-            PasswordHash = passwordHash;
         }
 
         //-----Non-static methods-----//
@@ -163,9 +159,8 @@ namespace RSACryptLibrary
         /// Generates a new pair of Keys. Key[0] is public, Key[1] is private
         /// </summary>
         /// <returns></returns>
-        public static Key[] GeneratePair(string username, string password, int keysLength)
+        public static Key[] GeneratePair(int keysLength)
         {
-            byte[] passwordHash = Hashes.ComputeHash(password);
             BigInteger p, q, publicExp = 0, privateExp = 0, rem = 0, eylerFunction, modulus = 0;
             Key[] outputKeyArray = new Key[2];
 
@@ -201,10 +196,20 @@ namespace RSACryptLibrary
                 BigInteger.DivRem(privateExp * publicExp, eylerFunction, out rem);
             }
 
-            outputKeyArray[0] = new Key(publicExp, modulus, KeyType.Public, username, passwordHash);   //Public Key
-            outputKeyArray[1] = new Key(privateExp, modulus, KeyType.Private, username, passwordHash); //Private Key
+            outputKeyArray[0] = new Key(publicExp, modulus, KeyType.Public);   //Public Key
+            outputKeyArray[1] = new Key(privateExp, modulus, KeyType.Private); //Private Key
 
             return outputKeyArray;
+        }
+
+        /// <summary>
+        /// Returns sample key with exp = 0, N = 0, selected KeyType, username = user, password hash = hash(123)
+        /// </summary>
+        /// <param name="keyType"></param>
+        /// <returns></returns>
+        public static Key SampleKey(KeyType keyType)
+        {
+            return new Key(0, 0, keyType);
         }
 
         /// <summary>
